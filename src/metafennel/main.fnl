@@ -32,6 +32,9 @@
    :no-compiler-sandbox false
    :assert-as-repl false
    :metadata false
+   :package-path []
+   :fennel-path []
+   :macro-path []
    :plugins []})
 
 (macro cont [& body]
@@ -58,14 +61,14 @@
     ["--no-compiler-sandbox" & args]
     (cont (set options.no-compiler-sandbox true))
 
-    ["--add-package-path"]
-    (fail "metafennel does not support --add-package-path... YET")
+    ["--add-package-path" path & args]
+    (cont (table.insert options.package-path path))
 
-    ["--add-fennel-path"]
-    (fail "metafennel does not support --add-fennel-path... YET")
+    ["--add-fennel-path" path & args]
+    (cont (table.insert options.fennel-path path))
 
-    ["--add-macro-path"]
-    (fail "metafennel does not support --add-macro-path... YET")
+    ["--add-macro-path" path & args]
+    (cont (table.insert options.macro-path path))
 
     ["--load"] (fail "metafennel does not support --load... YET") 
     ["-l"]     (fail "metafennel does not support -l... YET") 
@@ -173,6 +176,15 @@
                        :fn fn-hook})
 
 ;; Call the compiler
+(each [_ path (ipairs options.package-path)]
+  (set package.path (.. path ";" package.path)))
+
+(each [_ path (ipairs options.fennel-path)]
+  (set fennel.path (.. path ";" fennel.path)))
+
+(each [_ path (ipairs options.macro-path)]
+  (set fennel.macro-path (.. path ";" fennel.macro-path)))
+
 (local (_ sourcemap)
   (fennel.compile-string content
                          {:plugins plugins
